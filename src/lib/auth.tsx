@@ -3,6 +3,10 @@ import {
   GoogleAuthProvider,
   onAuthStateChanged,
   signInWithPopup,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
+  updateProfile,
   signOut as firebaseSignOut,
   User as FirebaseUser,
 } from "firebase/auth";
@@ -29,7 +33,10 @@ function toAuthUser(firebaseUser: FirebaseUser): AuthUser {
 interface AuthContextValue {
   user: AuthUser | null;
   loading: boolean;
-  signIn: () => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
+  signInWithEmail: (email: string, password: string) => Promise<void>;
+  signUpWithEmail: (email: string, password: string, displayName?: string) => Promise<void>;
+  sendPasswordReset: (email: string) => Promise<void>;
   signOut: () => Promise<void>;
 }
 
@@ -41,18 +48,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      setUser(firebaseUser ? toAuthUser(firebaseUser) : null);
+      // Anonymous sessions (possible when a host site sharing this Firebase
+      // project allows guest browsing) can't own picks that survive a device
+      // switch — treat them as signed out so they go through a real sign-in.
+      setUser(
+        firebaseUser && !firebaseUser.isAnonymous ? toAuthUser(firebaseUser) : null
+      );
       setLoading(false);
     });
     return () => unsubscribe();
   }, []);
 
-  const signIn = async () => {
-    try {
-      await signInWithPopup(auth, new GoogleAuthProvider());
-    } catch (err) {
-      console.error("Sign-in error", err);
+  // Sign-in errors propagate to the caller so the login form can show them.
+  const signInWithGoogle = async () => {
+    await signInWithPopup(auth, new GoogleAuthProvider());
+  };
+
+  const signInWithEmail = async (email: string, password: string) => {
+    await signInWithEmailAndPassword(auth, email, password);
+  };
+
+  const signUpWithEmail = async (email: string, password: string, displayName?: string) => {
+    const credential = await createUserWithEmailAndPassword(auth, email, password);
+    if (displayName?.trim()) {
+      await updateProfile(credential.user, { displayName: displayName.trim() });
+      // onAuthStateChanged already fired with the pre-update profile.
+      setUser(toAuthUser(credential.user));
     }
+  };
+
+  const sendPasswordReset = async (email: string) => {
+    await sendPasswordResetEmail(auth, email);
   };
 
   const signOut = async () => {
@@ -64,7 +90,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, signIn, signOut }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        loading,
+        signInWithGoogle,
+        signInWithEmail,
+        signUpWithEmail,
+        sendPasswordReset,
+        signOut,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

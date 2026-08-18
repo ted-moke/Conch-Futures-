@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { ArrowLeft, Award, Users, Save, Sparkles, Settings, Copy, Check, Share2, RefreshCw, Search, History, Clock, Timer } from "lucide-react";
+import { ArrowLeft, Award, Users, Save, Sparkles, Settings, Copy, Check, Share2, RefreshCw, Search, History, Clock, Timer, CircleDollarSign } from "lucide-react";
 import { Pool, Picks } from "../types";
 import { doc, getDoc, onSnapshot } from "firebase/firestore";
 import { db } from "../lib/firebase";
@@ -314,6 +314,54 @@ export default function PoolDetail({ pool: initialPool, user, onBack }: PoolDeta
           </div>
         </div>
       </div>
+
+      {/* League Buy-In / Dues Banner */}
+      {(pool.entryFee !== undefined || pool.duesNote) && (pool.entryFee || 0) > 0 && (
+        <div className={`p-3 rounded-xl border mb-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 ${
+          pool.payments?.[user.uid]?.paid
+            ? "bg-emerald-950/40 border-emerald-500/30 text-emerald-300"
+            : "bg-amber-950/40 border-amber-500/30 text-amber-300"
+        }`}>
+          <div className="flex items-center gap-3">
+            <div className={`p-2 rounded-lg ${
+              pool.payments?.[user.uid]?.paid
+                ? "bg-emerald-500/20 text-emerald-400"
+                : "bg-amber-500/20 text-amber-400"
+            }`}>
+              <CircleDollarSign className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="font-extrabold text-xs uppercase tracking-wider">
+                  League Buy-In: ${pool.entryFee?.toFixed(2) || "0.00"}
+                </span>
+                {pool.payments?.[user.uid]?.paid ? (
+                  <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[10px] font-extrabold rounded-md flex items-center gap-1">
+                    <Check className="w-3 h-3" /> Dues Paid
+                  </span>
+                ) : (
+                  <span className="px-2 py-0.5 bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-extrabold rounded-md flex items-center gap-1">
+                    Payment Pending
+                  </span>
+                )}
+              </div>
+              {pool.duesNote && (
+                <p className="text-xs text-slate-300 mt-0.5 font-medium">
+                  Payment Instructions: <span className="text-white font-semibold">{pool.duesNote}</span>
+                </p>
+              )}
+            </div>
+          </div>
+          {isCreator && (
+            <button
+              onClick={() => setActiveTab("admin")}
+              className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-lg border border-slate-700 transition-colors shrink-0 cursor-pointer"
+            >
+              Manage Dues &rarr;
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Tabs navigation */}
       <div className="flex border-b border-slate-800 gap-1 sm:gap-2 mb-3 overflow-x-auto pb-1 scrollbar-none">

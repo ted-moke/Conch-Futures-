@@ -9,8 +9,8 @@ interface LogoProps {
 export default function Logo({ className = "", size = 48, variant = "full" }: LogoProps) {
   const renderSVG = () => {
     return (
-      <img 
-        src="/conch.svg" 
+      <img
+        src={`${import.meta.env.BASE_URL}conch.svg`}
         alt="Conch Predictor Logo" 
         width={size} 
         height={size} 

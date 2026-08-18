@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
-import { initializeFirestore, doc, getDocFromServer } from 'firebase/firestore';
+import { getAuth, connectAuthEmulator } from 'firebase/auth';
+import { initializeFirestore, connectFirestoreEmulator, doc, getDocFromServer } from 'firebase/firestore';
 import appletConfig from '../../firebase-applet-config.json';
 
 // Setting VITE_FIREBASE_PROJECT_ID (plus the other VITE_FIREBASE_* vars, see
@@ -32,6 +32,18 @@ export const db = initializeFirestore(app, {
   useFetchStreams: false,
 } as any, databaseId);
 export const auth = getAuth();
+
+// Optional: run dev builds against the local Firebase emulators instead of the
+// live project, so local work never touches real accounts or data. Opt-in via
+// VITE_USE_FIREBASE_EMULATOR — a plain `vite` run still uses the real backend.
+// Must happen before the first Auth/Firestore call (testConnection below).
+if (import.meta.env.DEV && env.VITE_USE_FIREBASE_EMULATOR === 'true') {
+  const host = env.VITE_FIREBASE_EMULATOR_HOST || 'localhost';
+  const authPort = Number(env.VITE_AUTH_EMULATOR_PORT || 9099);
+  const firestorePort = Number(env.VITE_FIRESTORE_EMULATOR_PORT || 8080);
+  connectAuthEmulator(auth, `http://${host}:${authPort}`);
+  connectFirestoreEmulator(db, host, firestorePort);
+}
 
 // Validate connection to Firestore as requested by the Firebase Integration guidelines
 async function testConnection() {

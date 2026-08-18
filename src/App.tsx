@@ -5,10 +5,11 @@ import { Pool } from "./types";
 import PoolSelector from "./components/PoolSelector";
 import PoolDetail from "./components/PoolDetail";
 import LoginPage from "./components/LoginPage";
+import HostBar from "./components/HostBar";
 import Logo from "./components/Logo";
 
 export default function App() {
-  const { user, loading, signIn, signOut } = useAuth();
+  const { user, loading, signOut } = useAuth();
   const [selectedPool, setSelectedPool] = useState<Pool | null>(null);
 
   const handleSignOut = async () => {
@@ -27,12 +28,18 @@ export default function App() {
 
   // Not signed in
   if (!user) {
-    return <LoginPage onSignIn={signIn} />;
+    return (
+      <>
+        <HostBar />
+        <LoginPage />
+      </>
+    );
   }
 
   // Signed in layout
   return (
     <div className="min-h-screen bg-[#061217] flex flex-col">
+      <HostBar />
       {/* Navbar dashboard */}
       <header className="border-b border-[#113a4b]/50 bg-[#071d26]/80 backdrop-blur-md sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-2 sm:px-6 h-12 flex items-center justify-between">

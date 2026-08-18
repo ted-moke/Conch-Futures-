@@ -312,6 +312,15 @@ export default function StandingsTab({ pool, user, userPicks, categoryFilter = "
                             You
                           </span>
                         )}
+                        {(pool.entryFee || 0) > 0 && (
+                          <span className={`ml-1.5 text-[10px] px-1.5 py-0.5 rounded font-semibold border ${
+                            pool.payments?.[row.userId]?.paid
+                              ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/20"
+                              : "bg-amber-500/10 text-amber-400/80 border-amber-500/20"
+                          }`}>
+                            {pool.payments?.[row.userId]?.paid ? "✓ Paid" : "Unpaid"}
+                          </span>
+                        )}
                         <span className="sm:hidden block text-[10px] text-slate-400 mt-0.5">
                           {row.correctCount} correct • {Object.keys(row.picks).length} made
                         </span>
